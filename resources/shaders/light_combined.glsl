@@ -11,11 +11,11 @@ varying vec2 texPosition;
 uniform sampler2D palette;
 uniform sampler2D texture;
 
+uniform int palette_size;
 
 //point light variables
-uniform float pointlight_key; //this is always 0 in the source; could potentialy be moved to an array but not enough context
-uniform float pointlight_size;
 uniform int pointlight_count;
+uniform float pointlight_key[MAX_POINT_LIGHTS]; //this is always 0 in the source
 uniform vec2 pointlight_position[MAX_POINT_LIGHTS];
 uniform int pointlight_luminosity[MAX_POINT_LIGHTS];
 uniform float pointlight_radius[MAX_POINT_LIGHTS];
@@ -24,11 +24,10 @@ uniform float pointlight_radius[MAX_POINT_LIGHTS];
 //spot light, which is kinda just a triangle i guess
 uniform int spotlight_count;
 uniform float spotlight_key[MAX_SPOT_LIGHTS];
-uniform float spotlight_size[MAX_SPOT_LIGHTS];
 uniform vec2 spotlight_vertex0[MAX_SPOT_LIGHTS];
 uniform vec2 spotlight_vertex1[MAX_SPOT_LIGHTS];
 uniform vec2 spotlight_vertex2[MAX_SPOT_LIGHTS];
-uniform vec2 u_offset[MAX_SPOT_LIGHTS];
+//uniform vec2 u_offset[MAX_SPOT_LIGHTS]; //wasnt used
 
 vec4 source = texture2D(texture, fragTexCoord);
 
