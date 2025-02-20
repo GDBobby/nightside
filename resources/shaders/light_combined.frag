@@ -137,5 +137,5 @@ void main() {
         }
     }
 	gl_FragColor = gl_Color * shift(total_amount);
-	//gl_FragColor = gl_Color * pixel;
+	gl_FragColor = gl_Color * source;
 }
