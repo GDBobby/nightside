@@ -20,6 +20,18 @@ namespace nightside {
 		//sf::Vector2f offset; //i dont think this is used in the shaders
 	};
 
+	struct ImprovedSpotLight {
+		float key; //what is key? needs a better name
+		float radius;
+		float angle; //how wide the spot light is
+		float intensity;
+		float cutoffDistance;
+		//you could potentially do a color shift and a palette shift.
+		sf::Vector2f direction;
+		sf::Vector3f colorShift;
+
+	};
+
 	class Finder;
 	class LightShader {
 	  public:
@@ -35,7 +47,7 @@ namespace nightside {
 		
 
 		void Finalize();
-		void Submit(sf::RenderWindow& win, Palette& palette, sf::Texture const& tex, sf::Vector2f offset);
+		void Submit(sf::RenderWindow& win, Palette& palette, sf::Texture const& tex, sf::Vector2f offset = sf::Vector2f{0.f, 0.f});
 
 	  private:
 		//if youd like some additional safety, add a boolean, create a BeginShader function, set the boolean to true, and turn it off at the end of submit

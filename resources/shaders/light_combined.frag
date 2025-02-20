@@ -33,15 +33,14 @@ vec4 source = texture2D(texture, fragTexCoord);
 
 float cross2D(vec2 a, vec2 b) { return a.x * b.y - a.y * b.x; }
 
-vec4 shift(float amount, float size) {
+vec4 shift(float amount) {
     vec4 pixel = source;
-	int i_size = int(size);
-	for (int i = 0; i < i_size; i++) {
+	for (int i = 0; i < palette_size; i++) {
 		float fi = float(i);
-		vec4 swatch = texture2D(palette, vec2(fi / size, 0));
+		vec4 swatch = texture2D(palette, vec2(fi / float(palette_size), 0));
 		if (source.rgb == swatch.rgb) { 
             //need something here to clamp this texture pull to the border, if its not already there
-			pixel = texture2D(palette, vec2((fi + amount) / size, 0)); 
+			pixel = texture2D(palette, vec2((fi + amount) / float(palette_size), 0)); 
 		}
 	}
     return pixel;
@@ -57,13 +56,13 @@ bool isPointInConvexPolygon(vec2 point, int light) {
     }
 
     edge = spotlight_vertex2[light] - spotlight_vertex1[light];
-    vec2 toPoint = point - spotlight_vertex1[light];
+    toPoint = point - spotlight_vertex1[light];
     if(cross2D(edge, toPoint) < 0.0){
         return false;
     }
 
     edge = spotlight_vertex0[light] - spotlight_vertex2[light];
-    vec2 toPoint = point - spotlight_vertex2[light];
+    toPoint = point - spotlight_vertex2[light];
     if(cross2D(edge, toPoint) < 0.0){
         return false;
     }
@@ -105,37 +104,38 @@ void main() {
 	bool to_discard = true;
 	//if to_discard would be the same light to light, but it inside the light for loop
 
-	float total_amount = 0;
-	for(int light = 0; light < point_light_count){
-        for (int i = u_luminosity[light]; i >= 0; i--) {
+	float total_amount = 0.0;
+	for(int light = 0; light < pointlight_count; light++){
+        for (int i = pointlight_luminosity[light]; i >= 0; i--) {
 
 
             float fi = float(i);
-            vec2 result = isPointInRadius(pixelPoint, fi, u_position[light], radius[light]);
+            vec2 result = isPointInRadius(pixelPoint, fi, pointlight_position[light], pointlight_radius[light]);
             if (result.x == 1.0) {
                 float dither = fi + result.y;
-                total_amount += pointlight_key - dither;
+                total_amount += pointlight_key[light] - dither;
                 to_discard = false;
             }
         }
     }
 	if (to_discard) { discard; }
 
-    for(light = 0; light < spotlight_count; light++){
-        if (isPointInConvexPolygon(pixelPoint)) { 
-            total_amount += spotlight_key;
-            shift(spotlight_key[light]);
 
-            if(!isPointInConvexPolygon(pixelPoint + vec2(2.0, 2.0))){
+
+    for(int light = 0; light < spotlight_count; light++){
+        if (isPointInConvexPolygon(pixelPoint, light)) { 
+            total_amount += spotlight_key[light];
+/* i dont really understand what this does, ill need to understand it so i can reimplement it
+            if(!isPointInConvexPolygon(pixelPoint + 2.0, light)){
                 pixel = saturateColor(pixel, 1.5); 
             }
             
-            if (!isPointInConvexPolygon(pixelPoint + vec2(8.0, 8.0))) { 
+            if (!isPointInConvexPolygon(pixelPoint + 8.0, light)) { 
                 pixel = saturateColor(pixel, 1.25); 
             }
+*/
         }
     }
-	gl_FragColor = gl_Color * pixel;
-
 	gl_FragColor = gl_Color * shift(total_amount);
+	//gl_FragColor = gl_Color * pixel;
 }
