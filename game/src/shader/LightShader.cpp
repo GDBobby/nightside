@@ -18,16 +18,19 @@ LightShader::LightShader(Finder& finder) {
 		std::cout << "Failed to load shader " + frag.string() << ".\n"; 
 	}
 }
-void LightShader::AddPointLight(float key, sf::Vector2f position, int luminosity, float radius) {
+void LightShader::AddPointLight(sf::Vector2f position, int luminosity, float radius, float att_c, float att_l, float att_q){
 	if (currentPointLight >= (MAX_POINT_LIGHTS - 1)) { 
 		printf("already have maximum lights\n");
 		return;
 	}
 
-	pointLightKeys.push_back(key);
 	pointlightPosition.push_back(position);
 	pointlightLuminosity.push_back(luminosity);
 	pointlightRadius.push_back(radius);
+	pointlightAttenuation_constant.push_back(att_c);
+	pointlightAttenuation_linear.push_back(att_l);
+	pointlightAttenuation_quadratic.push_back(att_q);
+
 
 
 	currentPointLight++;
@@ -48,24 +51,16 @@ void LightShader::AddSpotLight(float key, sf::Vector2f vertex0, sf::Vector2f ver
 void LightShader::Finalize() { 
 	//m_shader.setUniform("pointlight_key", pointLightKeys.data()); 
 	m_shader.setUniform("pointlight_count", currentPointLight + 1);
-	m_shader.setUniformArray("pointlight_key", pointLightKeys.data(), pointLightKeys.size());
 	m_shader.setUniformArray("pointlight_position", pointlightPosition.data(), pointlightPosition.size());
 
-	//setUniform should be called as little as possible. SFML doesn't support int arrays. if the CPU performance is an issue, and GPU performance isnt, swap luminosity to a float (in both the C++ code and the GLSL code)
-	for (int i = 0; i < currentPointLight; i++) { 
-		m_shader.setUniform(("pointlight_luminosity[" + std::to_string(i) + "]").c_str(), pointlightLuminosity[i]); 
-	}
-	for (int i = currentPointLight; i < MAX_POINT_LIGHTS; i++) { 
-		m_shader.setUniform(("pointlight_luminosity[" + std::to_string(i) + "]").c_str(), 0); 
-	}
+	m_shader.setUniformArray("pointlight_luminence", pointlightLuminosity.data(), pointlightLuminosity.size());
 
 	m_shader.setUniformArray("pointlight_radius", pointlightRadius.data(), pointlightRadius.size());
+	m_shader.setUniformArray("pointlight_attenuation_constant", pointlightAttenuation_constant.data(), pointlightAttenuation_constant.size());
+	m_shader.setUniformArray("pointlight_attenuation_linear", pointlightAttenuation_linear.data(), pointlightAttenuation_linear.size());
+	m_shader.setUniformArray("pointlight_attenuation_quadratic", pointlightAttenuation_quadratic.data(), pointlightAttenuation_quadratic.size());
 
-	m_shader.setUniform("spotlight_count", currentSpotLight + 1);
-	m_shader.setUniformArray("spotlight_key", spotlightKey.data(), spotlightKey.size());
-	m_shader.setUniformArray("spotlight_vertex0", spotlight_vertex0.data(), spotlight_vertex0.size());
-	m_shader.setUniformArray("spotlight_vertex1", spotlight_vertex1.data(), spotlight_vertex1.size());
-	m_shader.setUniformArray("spotlight_vertex2", spotlight_vertex2.data(), spotlight_vertex2.size());
+	//m_shader.setUniform("spotlight_count", currentSpotLight + 1);
 }
 
 void LightShader::Submit(sf::RenderWindow& win, Palette& palette, sf::Texture const& tex, sf::Vector2f offset) {
@@ -86,7 +81,6 @@ void LightShader::Submit(sf::RenderWindow& win, Palette& palette, sf::Texture co
 
 void LightShader::ClearPointLights() {
 	currentPointLight = 0;
-	pointLightKeys.clear();
 	pointlightPosition.clear();
 	pointlightLuminosity.clear();
 	pointlightRadius.clear();

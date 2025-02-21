@@ -49,6 +49,8 @@ vec2 isPointInRadius(vec2 point, float dist) {
 	return vec2(inside, dither);
 }
 
+
+
 void main() {
 	float u_px = float(2.0);
 	vec2 pixelPoint = gl_FragCoord.xy;

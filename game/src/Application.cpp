@@ -13,7 +13,7 @@ bool KeyState::Update() {
 	if (sf::Keyboard::isKeyPressed(key)) {
 		bool const justPressed = state == KeyState::Up;
 		state = KeyState::Down;
-		return justPressed;
+		return justPressed && sf::Keyboard::isKeyPressed(sf::Keyboard::Key::LControl);
 	} else {
 		state = KeyState::Up;
 	}
@@ -52,10 +52,12 @@ void Application::run() {
 	LightShader lightShader{finder};
 
 	PointLight pointLight{};
-	pointLight.key = 0;
 	pointLight.luminosity = 5.f;
-	pointLight.position;
+	//pointLight.position; thisll be set when added, based on the mouse position
 	pointLight.radius = 5.f;
+	pointLight.attenuation_constant = 0.f; //need imgui to fine tune these
+	pointLight.attenuation_linear = 1.f;
+	pointLight.attenuation_quadratic = 0.f;
 
 	SpotLight spotLight{};
 	spotLight.key = 0;
@@ -83,6 +85,48 @@ void Application::run() {
 		auto pos = sf::Glsl::Vec2{io.MousePos.x, window.getSize().y - io.MousePos.y};
 
 		//printf("key val? : %d\n", sf::Keyboard::isKeyPressed(addPointLightKey.key));
+
+		if (ImGui::Begin("point light controls")) { ImGui::Text("Light to be added");
+			ImGui::Text("mouse pos - %.2f:%.2f", pos.x, pos.y);
+			ImGui::Separator();
+
+			ImGui::DragFloat("radius##p", &pointLight.radius, 0.1f, 0.1f, 1000.f);
+			ImGui::DragFloat("luminence##p", &pointLight.luminosity, 0.1f, 0.f, 100.f);
+			ImGui::DragFloat("attenuation constant##p", &pointLight.attenuation_constant, 0.1f, 0.f, 100.f);
+			ImGui::DragFloat("attenuation linear##p", &pointLight.attenuation_linear, 0.1f, 0.f, 100.f);
+			ImGui::DragFloat("attenuation quadratic##p", &pointLight.attenuation_quadratic, 0.1f, 0.f, 100.f);
+
+			std::string existingPLStr = "existing point light";
+			std::string existingPLExt = "##p";
+			ImGui::Separator();
+			ImGui::Text("current point light count %d", lightShader.currentPointLight);
+			for (int i = 0; i < lightShader.currentPointLight; i++) {
+				existingPLStr = "PL ";
+				existingPLStr += std::to_string(i);
+				existingPLExt = "##p";
+				if (ImGui::TreeNode((existingPLStr + existingPLExt).c_str())) {
+					existingPLExt += std::to_string(i);
+
+					existingPLStr = "position";
+					ImGui::DragFloat2((existingPLStr + existingPLExt).c_str(), reinterpret_cast<float*>(&lightShader.pointlightPosition[i]), 0.1f, -10000.f, 10000.f);
+					existingPLStr = "radius";
+					ImGui::DragFloat((existingPLStr + existingPLExt).c_str(), &lightShader.pointlightRadius[i], 0.1f, 0.1f, 1000.f);
+					existingPLStr = "luminence";
+					ImGui::DragFloat((existingPLStr + existingPLExt).c_str(), &lightShader.pointlightLuminosity[i], 0.1f, 0.f, 100.f);
+
+					existingPLStr = "attenuation constant";
+					ImGui::DragFloat((existingPLStr + existingPLExt).c_str(), &lightShader.pointlightAttenuation_constant[i], 0.1f, 0.f, 100.f);
+					existingPLStr = "attenuation linear";
+					ImGui::DragFloat((existingPLStr + existingPLExt).c_str(), &lightShader.pointlightAttenuation_linear[i], 0.1f, 0.f, 100.f);
+					existingPLStr = "attenuation quadratic";
+					ImGui::DragFloat((existingPLStr + existingPLExt).c_str(), &lightShader.pointlightAttenuation_quadratic[i], 0.1f, 0.f, 100.f);
+					ImGui::TreePop();
+				}
+			}
+
+		}
+		ImGui::End();
+
 		if (addPointLightKey.Update()) {
 			pointLight.position = pos;
 			printf("adding point light\n");
