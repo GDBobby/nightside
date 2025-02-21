@@ -20,7 +20,6 @@ uniform int pointlight_count;
 #if USING_LIGHT_COLORS
 uniform vec4 pointlight_color[MAX_POINT_LIGHTS];
 #endif
-
 uniform vec2 pointlight_position[MAX_POINT_LIGHTS];
 uniform float pointlight_radius[MAX_POINT_LIGHTS];
 uniform float pointlight_luminence[MAX_POINT_LIGHTS];
@@ -28,15 +27,23 @@ uniform float pointlight_attenuation_constant[MAX_POINT_LIGHTS];
 uniform float pointlight_attenuation_linear[MAX_POINT_LIGHTS];
 uniform float pointlight_attenuation_quadratic[MAX_POINT_LIGHTS];
 
-//uniform vec2 u_offset[MAX_POINT_LIGHTS]; this wasnt used
-
-//spot light, which is kinda just a triangle i guess
+//spot light variables
 uniform int spotlight_count;
 #if USING_LIGHT_COLORS
 uniform vec4 spotlight_color[MAX_SPOT_LIGHTS];
 #endif
+uniform vec2 spotlight_position[MAX_SPOT_LIGHTS];
+uniform vec2 spotlight_direction[MAX_SPOT_LIGHTS];
+uniform float spotlight_radius[MAX_SPOT_LIGHTS];
+uniform float spotlight_luminence[MAX_SPOT_LIGHTS];
+uniform float spotlight_attenuation_constant[MAX_SPOT_LIGHTS];
+uniform float spotlight_attenuation_linear[MAX_SPOT_LIGHTS];
+uniform float spotlight_attenuation_quadratic[MAX_SPOT_LIGHTS];
+uniform float spotlight_cutoff[MAX_SPOT_LIGHTS];
+uniform float spotlight_outerCutoff[MAX_SPOT_LIGHTS];
 
-//uniform vec2 u_offset[MAX_SPOT_LIGHTS]; //wasnt used
+
+// **** end of uniform variables
 
 vec4 source = texture2D(texture, fragTexCoord);
 
@@ -80,6 +87,32 @@ int CalculatePointLightShift(vec2 point, int light) {
     return int(floor(pointlight_luminence[light] * attenuation));
 }
 
+int CalculateSpotLightShift(vec2 point, int light) {
+    vec2 lightDirection = point - spotlight_position[light];
+    float lightDistance = length(lightDirection);
+
+    if(lightDistance == 0.0 || lightDistance > spotlight_radius[light]) {
+        return 0;
+    }
+    lightDirection = normalize(lightDirection); //normalized
+    float spotDot = dot(lightDirection, -normalize(spotlight_direction[light]));
+    if(spotDot < spotlight_outerCutoff[light]){
+        return 0;
+    }
+    float spotValue = smoothstep(spotlight_outerCutoff[light], spotlight_cutoff[light], spotDot);
+    //float spotAttenuation = pow(spotValue, spotlight_exponent[light]); // i need to dick with this to see what it does
+
+    lightDistance = lightDistance / spotlight_radius[light];
+
+    float attenuation = 1.0 / 
+                    (
+                        spotlight_attenuation_constant[light] +
+                        spotlight_attenuation_linear[light] * lightDistance +
+                        spotlight_attenuation_quadratic[light] * lightDistance * lightDistance
+                    );
+    return int(floor(spotlight_luminence[light] * attenuation * spotValue));
+}
+
 void main() {
 	float u_px = float(2.0);
 	vec2 pixelPoint = gl_FragCoord.xy;
@@ -94,6 +127,9 @@ void main() {
             //localShift = clamp(localShift - 1, 0, localShift);
         //}
         total_amount += CalculatePointLightShift(pixelPoint, light);
+    }
+    for(int light = 0; light < spotlight_count; light++){
+        total_amount += CalculateSpotLightShift(pixelPoint, light);
     }
 	gl_FragColor = gl_Color * shift(float(total_amount));
 	//gl_FragColor = gl_Color * source;

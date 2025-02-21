@@ -8,6 +8,7 @@
 
 #include <iostream>
 #include <string>
+#include <cmath>
 
 bool KeyState::Update() {
 	if (sf::Keyboard::isKeyPressed(key)) {
@@ -31,6 +32,120 @@ Application::Application() {
 	if (!ImGui::SFML::Init(window)) { std::cout << "Failed to initialize window.\n"; }
 }
 
+void DrawPointLightControl(sf::Glsl::Vec2 pos, LightShader& lightShader, PointLight& pointLight) {
+
+	if (ImGui::Begin("point light controls")) {
+		ImGui::Text("Light to be added");
+		ImGui::Text("mouse pos - %.2f:%.2f", pos.x, pos.y);
+		if (ImGui::Button("clear point lights")) { lightShader.ClearPointLights(); }
+		ImGui::Separator();
+
+		ImGui::DragFloat("radius##p", &pointLight.radius, 0.1f, 0.1f, 1000.f);
+		ImGui::DragFloat("luminence##p", &pointLight.luminosity, 0.1f, 0.f, 100.f);
+		ImGui::DragFloat("attenuation constant##p", &pointLight.attenuation_constant, 0.1f, 0.f, 100.f);
+		ImGui::DragFloat("attenuation linear##p", &pointLight.attenuation_linear, 0.1f, 0.f, 100.f);
+		ImGui::DragFloat("attenuation quadratic##p", &pointLight.attenuation_quadratic, 0.1f, 0.f, 100.f);
+
+		std::string existingPLStr = "existing point light";
+		std::string existingPLExt = "##p";
+		ImGui::Separator();
+		ImGui::Text("current point light count %d", lightShader.currentPointLight);
+		for (int i = 0; i < lightShader.currentPointLight; i++) {
+			existingPLStr = "PL ";
+			existingPLStr += std::to_string(i);
+			existingPLExt = "##p";
+			if (ImGui::TreeNode((existingPLStr + existingPLExt).c_str())) {
+				existingPLExt += std::to_string(i);
+
+				existingPLStr = "position";
+				ImGui::DragFloat2((existingPLStr + existingPLExt).c_str(), reinterpret_cast<float*>(&lightShader.pointlightPosition[i]), 1.f, -10000.f, 10000.f);
+				existingPLStr = "radius";
+				ImGui::DragFloat((existingPLStr + existingPLExt).c_str(), &lightShader.pointlightRadius[i], 0.1f, 0.1f, 1000.f);
+				existingPLStr = "luminence";
+				ImGui::DragFloat((existingPLStr + existingPLExt).c_str(), &lightShader.pointlightLuminosity[i], 0.1f, 0.f, 100.f);
+
+				existingPLStr = "attenuation constant";
+				ImGui::DragFloat((existingPLStr + existingPLExt).c_str(), &lightShader.pointlightAttenuation_constant[i], 0.1f, 0.f, 100.f);
+				existingPLStr = "attenuation linear";
+				ImGui::DragFloat((existingPLStr + existingPLExt).c_str(), &lightShader.pointlightAttenuation_linear[i], 0.1f, 0.f, 100.f);
+				existingPLStr = "attenuation quadratic";
+				ImGui::DragFloat((existingPLStr + existingPLExt).c_str(), &lightShader.pointlightAttenuation_quadratic[i], 0.1f, 0.f, 100.f);
+				ImGui::TreePop();
+			}
+		}
+	}
+	ImGui::End();
+}
+
+float CartesianToPolar(sf::Vector2f direction) { return std::atan2(direction.y, direction.x); }
+sf::Vector2f PolarToCartesian(float theta) {
+	return { std::cos(theta), std::sin(theta) };
+}
+
+void DrawSpotLightControl(sf::Glsl::Vec2 pos, LightShader& lightShader, SpotLight& spotlight) {
+	if (ImGui::Begin("spot light controls")) {
+		ImGui::Text("Light to be added");
+		ImGui::Text("mouse pos - %.2f:%.2f", pos.x, pos.y);
+
+		if (ImGui::Button("clear spot lights")) { lightShader.ClearSpotLights();
+		}
+		ImGui::Separator();
+
+		float basePolar = CartesianToPolar(spotlight.direction);
+		ImGui::DragFloat("direction##s", &basePolar, 0.1f, -10.f, 10.f);
+		spotlight.direction = PolarToCartesian(basePolar);
+		ImGui::DragFloat("radius##s", &spotlight.radius, 0.1f, 0.1f, 1000.f);
+		ImGui::DragFloat("luminence##s", &spotlight.luminosity, 0.1f, 0.f, 100.f);
+		ImGui::DragFloat("attenuation constant##s", &spotlight.attenuation_constant, 0.1f, 0.f, 100.f);
+		ImGui::DragFloat("attenuation linear##s", &spotlight.attenuation_linear, 0.1f, 0.f, 100.f);
+		ImGui::DragFloat("attenuation quadratic##s", &spotlight.attenuation_quadratic, 0.1f, 0.f, 100.f);
+		ImGui::DragFloat("cutoff", &spotlight.cutoffAngle, 0.1f, 0.1f, 1000.f);
+		ImGui::DragFloat("outer cutoff", &spotlight.outerCutoffAngle, 0.1f, 0.1f, 1000.f);
+
+		std::string existingPLStr = "existing spot light";
+		std::string existingPLExt = "##s";
+		ImGui::Separator();
+		ImGui::Text("current spot light count %d", lightShader.currentSpotLight);
+		for (int i = 0; i < lightShader.currentSpotLight; i++) {
+			existingPLStr = "SL ";
+			existingPLStr += std::to_string(i);
+			existingPLExt = "##s";
+			if (ImGui::TreeNode((existingPLStr + existingPLExt).c_str())) {
+				existingPLExt += std::to_string(i);
+
+				existingPLStr = "position";
+				ImGui::DragFloat2((existingPLStr + existingPLExt).c_str(), reinterpret_cast<float*>(&lightShader.spotlightPosition[i]), 1.f, -10000.f, 10000.f);
+				existingPLStr = "direction";
+
+				float localPolar = CartesianToPolar(lightShader.spotlightDirection[i]);
+				ImGui::Text("direction debuggging : %.2f:%.2f", lightShader.spotlightDirection[i].x, lightShader.spotlightDirection[i].y);
+				ImGui::DragFloat((existingPLStr + existingPLExt).c_str(), &localPolar, 0.1f, -10.f, 10.f);
+				lightShader.spotlightDirection[i] = PolarToCartesian(localPolar);
+				existingPLStr = "radius";
+				ImGui::DragFloat((existingPLStr + existingPLExt).c_str(), &lightShader.spotlightRadius[i], 0.1f, 0.1f, 1000.f);
+				existingPLStr = "luminence";
+				ImGui::DragFloat((existingPLStr + existingPLExt).c_str(), &lightShader.spotlightLuminosity[i], 0.1f, 0.f, 100.f);
+
+				existingPLStr = "attenuation constant";
+				ImGui::DragFloat((existingPLStr + existingPLExt).c_str(), &lightShader.spotlightAttenuation_constant[i], 0.1f, 0.f, 100.f);
+				existingPLStr = "attenuation linear";
+				ImGui::DragFloat((existingPLStr + existingPLExt).c_str(), &lightShader.spotlightAttenuation_linear[i], 0.1f, 0.f, 100.f);
+				existingPLStr = "attenuation quadratic";
+				ImGui::DragFloat((existingPLStr + existingPLExt).c_str(), &lightShader.spotlightAttenuation_quadratic[i], 0.1f, 0.f, 100.f);
+
+				
+				existingPLStr = "cutoff";
+				ImGui::DragFloat((existingPLStr + existingPLExt).c_str(), &lightShader.spotlight_cutoff[i], 0.1f, 0.1f, 1000.f);
+				existingPLStr = "outer cutoff";
+				ImGui::DragFloat((existingPLStr + existingPLExt).c_str(), &lightShader.spotlight_outerCutoff[i], 0.1f, 0.1f, 1000.f);
+
+				ImGui::TreePop();
+			}
+		}
+	}
+	ImGui::End();
+}
+
 
 void Application::run() {
 	constexpr static float size_v{64.f};
@@ -52,19 +167,21 @@ void Application::run() {
 	LightShader lightShader{finder};
 
 	PointLight pointLight{};
-	pointLight.luminosity = 5.f;
+	pointLight.luminosity = 1.f;
 	//pointLight.position; thisll be set when added, based on the mouse position
-	pointLight.radius = 5.f;
-	pointLight.attenuation_constant = 0.f; //need imgui to fine tune these
+	pointLight.radius = 100.f;
+	pointLight.attenuation_constant = 0.f;
 	pointLight.attenuation_linear = 1.f;
 	pointLight.attenuation_quadratic = 0.f;
 
 	SpotLight spotLight{};
-	spotLight.key = 0;
-	spotLight.size = 4;
-	spotLight.vertices[0] = {0.0f, 0.0f};
-	spotLight.vertices[1] = {1200.f, 0.0f};
-	spotLight.vertices[2] = {0.0f, 1200.f};
+	spotLight.luminosity = 1.f;
+	spotLight.radius = 100.f;
+	spotLight.attenuation_constant = 0.f;
+	spotLight.attenuation_linear = 1.f;
+	spotLight.attenuation_quadratic = 0.f;
+	spotLight.cutoffAngle = 3.14f / 2.f; //90 degrees
+	spotLight.outerCutoffAngle = 3.14f / 1.8f; //slightly more than 90 degrees
 
 	
 
@@ -84,60 +201,24 @@ void Application::run() {
 		auto& io = ImGui::GetIO();
 		auto pos = sf::Glsl::Vec2{io.MousePos.x, window.getSize().y - io.MousePos.y};
 
-		//printf("key val? : %d\n", sf::Keyboard::isKeyPressed(addPointLightKey.key));
+		DrawPointLightControl(pos, lightShader, pointLight);
+		DrawSpotLightControl(pos, lightShader, spotLight);
 
-		if (ImGui::Begin("point light controls")) { ImGui::Text("Light to be added");
-			ImGui::Text("mouse pos - %.2f:%.2f", pos.x, pos.y);
-			ImGui::Separator();
 
-			ImGui::DragFloat("radius##p", &pointLight.radius, 0.1f, 0.1f, 1000.f);
-			ImGui::DragFloat("luminence##p", &pointLight.luminosity, 0.1f, 0.f, 100.f);
-			ImGui::DragFloat("attenuation constant##p", &pointLight.attenuation_constant, 0.1f, 0.f, 100.f);
-			ImGui::DragFloat("attenuation linear##p", &pointLight.attenuation_linear, 0.1f, 0.f, 100.f);
-			ImGui::DragFloat("attenuation quadratic##p", &pointLight.attenuation_quadratic, 0.1f, 0.f, 100.f);
-
-			std::string existingPLStr = "existing point light";
-			std::string existingPLExt = "##p";
-			ImGui::Separator();
-			ImGui::Text("current point light count %d", lightShader.currentPointLight);
-			for (int i = 0; i < lightShader.currentPointLight; i++) {
-				existingPLStr = "PL ";
-				existingPLStr += std::to_string(i);
-				existingPLExt = "##p";
-				if (ImGui::TreeNode((existingPLStr + existingPLExt).c_str())) {
-					existingPLExt += std::to_string(i);
-
-					existingPLStr = "position";
-					ImGui::DragFloat2((existingPLStr + existingPLExt).c_str(), reinterpret_cast<float*>(&lightShader.pointlightPosition[i]), 0.1f, -10000.f, 10000.f);
-					existingPLStr = "radius";
-					ImGui::DragFloat((existingPLStr + existingPLExt).c_str(), &lightShader.pointlightRadius[i], 0.1f, 0.1f, 1000.f);
-					existingPLStr = "luminence";
-					ImGui::DragFloat((existingPLStr + existingPLExt).c_str(), &lightShader.pointlightLuminosity[i], 0.1f, 0.f, 100.f);
-
-					existingPLStr = "attenuation constant";
-					ImGui::DragFloat((existingPLStr + existingPLExt).c_str(), &lightShader.pointlightAttenuation_constant[i], 0.1f, 0.f, 100.f);
-					existingPLStr = "attenuation linear";
-					ImGui::DragFloat((existingPLStr + existingPLExt).c_str(), &lightShader.pointlightAttenuation_linear[i], 0.1f, 0.f, 100.f);
-					existingPLStr = "attenuation quadratic";
-					ImGui::DragFloat((existingPLStr + existingPLExt).c_str(), &lightShader.pointlightAttenuation_quadratic[i], 0.1f, 0.f, 100.f);
-					ImGui::TreePop();
-				}
-			}
-
-		}
-		ImGui::End();
-
+		bool isInsideWindow = (pos.x >= 0 && pos.x < window.getSize().x && pos.y >= 0 && pos.y < window.getSize().y);
 		if (addPointLightKey.Update()) {
 			pointLight.position = pos;
-			printf("adding point light\n");
-			lightShader.AddPointLight(pointLight);
+			if (window.hasFocus() && isInsideWindow) {
+				printf("adding point light\n");
+				lightShader.AddPointLight(pointLight);
+			}
 		}
 		if (addSpotLightKey.Update()) {
-			for (int i = 0; i < 3; i++) { 
-				spotLight.vertices[i] += pos; 
+			spotLight.position = pos; 
+			if (window.hasFocus() && isInsideWindow) {
+				printf("adding spot light\n");
+				lightShader.AddSpotLight(spotLight);
 			}
-			printf("adding spot light\n");
-			lightShader.AddSpotLight(spotLight);
 		}
 
 

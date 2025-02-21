@@ -23,22 +23,15 @@ namespace nightside {
 		//sf::Vector2f offset; //i dont think this is used in the shaders
 	};
 	struct SpotLight {
-		float key;
-		float size;
-		sf::Vector2f vertices[3]; //could potentially replace this with a TriangleStruct
-		//sf::Vector2f offset; //i dont think this is used in the shaders
-	};
-
-	struct ImprovedSpotLight {
-		float key; //what is key? needs a better name
-		float radius;
-		float angle; //how wide the spot light is
-		float intensity;
-		float cutoffDistance;
-		//you could potentially do a color shift and a palette shift.
+		sf::Vector2f position;
 		sf::Vector2f direction;
-		sf::Vector3f colorShift;
-
+		float radius;
+		float luminosity;
+		float attenuation_constant;
+		float attenuation_linear;
+		float attenuation_quadratic;
+		float cutoffAngle;
+		float outerCutoffAngle;
 	};
 
 	class Finder;
@@ -51,8 +44,10 @@ namespace nightside {
 
 		void AddPointLight(sf::Vector2f position, int luminosity, float radius, float att_c, float att_l, float att_q);
 		void AddPointLight(PointLight pointlight) { AddPointLight(pointlight.position, pointlight.luminosity, pointlight.radius, pointlight.attenuation_constant, pointlight.attenuation_linear, pointlight.attenuation_quadratic); }
-		void AddSpotLight(float key, sf::Vector2f vertex0, sf::Vector2f vertex1, sf::Vector2f vertex2);
-		void AddSpotLight(SpotLight spotlight) { AddSpotLight(spotlight.key, spotlight.vertices[0], spotlight.vertices[1], spotlight.vertices[2]); }
+		void AddSpotLight(sf::Vector2f position, sf::Vector2f direction, int luminosity, float radius, float att_c, float att_l, float att_q, float cutoff, float outerCutoff);
+		void AddSpotLight(SpotLight spotlight) {
+			AddSpotLight(spotlight.position, spotlight.direction, spotlight.luminosity, spotlight.radius, spotlight.attenuation_constant, spotlight.attenuation_linear, spotlight.attenuation_quadratic, spotlight.cutoffAngle, spotlight.outerCutoffAngle);
+		}
 		
 
 		void Finalize();
@@ -71,10 +66,15 @@ namespace nightside {
 		std::vector<float> pointlightAttenuation_linear{};
 		std::vector<float> pointlightAttenuation_quadratic{};
 
-		std::vector<float> spotlightKey{};
-		std::vector<sf::Vector2f> spotlight_vertex0{};
-		std::vector<sf::Vector2f> spotlight_vertex1{};
-		std::vector<sf::Vector2f> spotlight_vertex2{};
+		std::vector<sf::Vector2f> spotlightPosition{};
+		std::vector<sf::Vector2f> spotlightDirection{};
+		std::vector<float> spotlightLuminosity{};
+		std::vector<float> spotlightRadius{};
+		std::vector<float> spotlightAttenuation_constant{};
+		std::vector<float> spotlightAttenuation_linear{};
+		std::vector<float> spotlightAttenuation_quadratic{};
+		std::vector<float> spotlight_cutoff{};
+		std::vector<float> spotlight_outerCutoff{};
 
 	  private:
 		sf::Shader m_shader{};
