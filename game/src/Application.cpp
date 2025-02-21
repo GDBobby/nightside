@@ -160,8 +160,12 @@ void Application::run() {
 	//Shader darken{"lighten", "pioneer", finder};
 	sf::Texture m_subject;
 	if (!m_subject.loadFromFile(finder.get_resource_path() / fs::path{"images/pioneer.png"})) { std::cout << "Failed to load image.\n"; }
-	//Shader point_light{"point_light", "pioneer", finder};
-	//Shader point_light_2{"point_light", "pioneer", finder};
+
+	sf::Sprite subject_sprite0{m_subject};
+	subject_sprite0.setPosition(sf::Vector2f(100.f, 200.f));
+
+	sf::Sprite subject_sprite1{m_subject};
+	subject_sprite0.setPosition(sf::Vector2f(400.f, 200.f));
 
 	Palette palette{"pioneer", finder};
 	LightShader lightShader{finder};
@@ -201,6 +205,17 @@ void Application::run() {
 		auto& io = ImGui::GetIO();
 		auto pos = sf::Glsl::Vec2{io.MousePos.x, window.getSize().y - io.MousePos.y};
 
+		if (ImGui::Begin("sprite control")) { 
+			
+			sf::Vector2f pos0 = subject_sprite0.getPosition();
+			ImGui::DragFloat2("sprite0 pos", reinterpret_cast<float*>(&pos0), 1.f, 0.f, 10000.f);
+			subject_sprite0.setPosition(pos0);
+			sf::Vector2f pos1 = subject_sprite1.getPosition();
+			ImGui::DragFloat2("sprite1 pos", reinterpret_cast<float*>(&pos1), 1.f, 0.f, 10000.f);
+			subject_sprite1.setPosition(pos1);
+		}
+		ImGui::End();
+
 		DrawPointLightControl(pos, lightShader, pointLight);
 		DrawSpotLightControl(pos, lightShader, spotLight);
 
@@ -222,11 +237,6 @@ void Application::run() {
 		}
 
 
-		//darken.update(window, clock, -5.f, {});
-		//point_light_2.update(window, clock, 0.f, {200.f, 300.f});
-		//point_light.update(window, clock, 0.f, pos);
-		lightShader.Finalize();
-
 		// render
 		window.clear();
 
@@ -237,10 +247,9 @@ void Application::run() {
 		backdrop.setPosition(f_center_v);
 		window.draw(backdrop);
 
-		//darken.render(window, sf::Vector2f{0.f, 0.f});
-		lightShader.Submit(window, palette, m_subject);
-		//point_light_2.render(window, sf::Vector2f{0.f, 0.f});
-		//point_light.render(window, sf::Vector2f{0.f, 0.f});
+		lightShader.Finalize();
+		lightShader.Submit(window, palette, subject_sprite0);
+		lightShader.Submit(window, palette, subject_sprite1);
 
 		ImGui::SFML::Render(window);
 		window.display();

@@ -76,19 +76,14 @@ void LightShader::Finalize() {
 
 }
 
-void LightShader::Submit(sf::RenderWindow& win, Palette& palette, sf::Texture const& tex, sf::Vector2f offset) {
-	palette.set_position({400.f, 400.f});
+void LightShader::Submit(sf::RenderWindow& win, Palette& palette, sf::Sprite const& sprite) {
 	m_shader.setUniform("palette_size", static_cast<int>(palette.get_size()));
 	m_shader.setUniform("palette", palette.get_texture().getTexture());
-	m_shader.setUniform("texture", tex);
+	m_shader.setUniform("texture", sprite.getTexture());
 
 	sf::Sprite palette_sprite{palette.get_texture().getTexture()};
-	palette_sprite.setScale({64.f, 64.f});
 
-	sf::Sprite tile{tex};
-	tile.setPosition(palette.get_position() - sf::Vector2f{tile.getLocalBounds().size} + offset);
-
-	win.draw(tile, &m_shader);
+	win.draw(sprite, &m_shader);
 
 }
 
