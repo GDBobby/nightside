@@ -51,13 +51,14 @@ float cross2D(vec2 a, vec2 b) { return a.x * b.y - a.y * b.x; }
 
 vec4 shift(float amount) {
     vec4 pixel = source;
+
 	for (int i = 0; i < palette_size; i++) {
 		float fi = float(i);
 		vec4 swatch = texture2D(palette, vec2(fi / float(palette_size), 0));
 		if (source.rgb == swatch.rgb) { 
             //need something here to clamp this texture pull to the border, if its not already there
-            
-			pixel = texture2D(palette, vec2((fi + amount) / float(palette_size), 0)); 
+            fi = clamp((fi + amount) / float(palette_size), 0.0, 1.0);
+			pixel = texture2D(palette, vec2(fi, 0)); 
 		}
 	}
     return pixel;
@@ -69,10 +70,10 @@ vec4 saturateColor(vec4 inputColor, float saturationAmount) {
 	return vec4(clamp(saturatedColor, 0.0, 1.0), inputColor.a);
 }
 
-int CalculatePointLightShift(vec2 point, int light) {
+float CalculatePointLightShift(vec2 point, int light) {
     float lightDistance = length(point - pointlight_position[light]);
     if(lightDistance == 0.0 || lightDistance > pointlight_radius[light]) {
-        return 0;
+        return 0.0;
     }
     lightDistance = lightDistance / pointlight_radius[light];
     //vec2 lightDir = point - pointlight_position[light];
@@ -84,20 +85,20 @@ int CalculatePointLightShift(vec2 point, int light) {
                         pointlight_attenuation_linear[light] * lightDistance +
                         pointlight_attenuation_quadratic[light] * lightDistance * lightDistance
                     );
-    return int(floor(pointlight_luminence[light] * attenuation));
+    return pointlight_luminence[light] * attenuation;
 }
 
-int CalculateSpotLightShift(vec2 point, int light) {
+float CalculateSpotLightShift(vec2 point, int light) {
     vec2 lightDirection = point - spotlight_position[light];
     float lightDistance = length(lightDirection);
 
     if(lightDistance == 0.0 || lightDistance > spotlight_radius[light]) {
-        return 0;
+        return 0.0;
     }
     lightDirection = normalize(lightDirection); //normalized
     float spotDot = dot(lightDirection, -normalize(spotlight_direction[light]));
     if(spotDot < spotlight_outerCutoff[light]){
-        return 0;
+        return 0.0;
     }
     float spotValue = smoothstep(spotlight_outerCutoff[light], spotlight_cutoff[light], spotDot);
     //float spotAttenuation = pow(spotValue, spotlight_exponent[light]); // i need to dick with this to see what it does
@@ -110,7 +111,7 @@ int CalculateSpotLightShift(vec2 point, int light) {
                         spotlight_attenuation_linear[light] * lightDistance +
                         spotlight_attenuation_quadratic[light] * lightDistance * lightDistance
                     );
-    return int(floor(spotlight_luminence[light] * attenuation * spotValue));
+    return spotlight_luminence[light] * attenuation * spotValue;
 }
 
 void main() {
@@ -119,7 +120,7 @@ void main() {
 	pixelPoint = floor(pixelPoint / u_px) * u_px;
     //to_discard was giving me trouble
 
-	int total_amount = 0;
+	float total_amount = 0.0;
 	for(int light = 0; light < pointlight_count; light++){
         //int localShift = CalculatePointLightShift(pixelPoint, light);
         //if(result.x == 1.0){
@@ -131,6 +132,31 @@ void main() {
     for(int light = 0; light < spotlight_count; light++){
         total_amount += CalculateSpotLightShift(pixelPoint, light);
     }
-	gl_FragColor = gl_Color * shift(float(total_amount));
+
+
+    
+    float fraction = fract(total_amount);
+    total_amount = total_amount - fraction;
+    
+    if(total_amount >= 1.0){
+    if(fraction < 0.25){
+        if((mod(pixelPoint.x, 2.0) == 0.0) && (mod(pixelPoint.y, 2.0) == 0.0)){
+            total_amount -= 1.0;
+        }
+    }
+    else if(fraction < 0.5){
+        if((mod(pixelPoint.x, 4.0) == 0.0) && (mod(pixelPoint.y, 4.0) == 0.0)){
+            total_amount -= 1.0;
+        }
+    }
+    else {
+        if((mod(pixelPoint.x, 8.0) == 0.0) && (mod(pixelPoint.y, 8.0) == 0.0)){
+            total_amount -= 1.0;
+        }
+    }
+    }
+
+
+	gl_FragColor = gl_Color * shift(total_amount);
 	//gl_FragColor = gl_Color * source;
 }

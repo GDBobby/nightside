@@ -61,7 +61,6 @@ void LightShader::Finalize() {
 	m_shader.setUniformArray("pointlight_attenuation_constant", pointlightAttenuation_constant.data(), pointlightAttenuation_constant.size());
 	m_shader.setUniformArray("pointlight_attenuation_linear", pointlightAttenuation_linear.data(), pointlightAttenuation_linear.size());
 	m_shader.setUniformArray("pointlight_attenuation_quadratic", pointlightAttenuation_quadratic.data(), pointlightAttenuation_quadratic.size());
-
 	
 	m_shader.setUniform("spotlight_count", currentSpotLight + 1);
 	m_shader.setUniformArray("spotlight_position", spotlightPosition.data(), spotlightPosition.size());
