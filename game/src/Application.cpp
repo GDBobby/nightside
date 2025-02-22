@@ -62,18 +62,18 @@ void DrawPointLightControl(sf::Glsl::Vec2 pos, LightShader& lightShader, PointLi
 				existingPLStr = "radius";
 				ImGui::DragFloat((existingPLStr + existingPLExt).c_str(), &lightShader.pointlightRadius[i], 0.1f, 0.1f, 1000.f);
 				existingPLStr = "luminence";
-				ImGui::DragFloat((existingPLStr + existingPLExt).c_str(), &lightShader.pointlightLuminosity[i], 0.1f, 0.f, 100.f);
+				ImGui::DragFloat((existingPLStr + existingPLExt).c_str(), &lightShader.pointlightLuminosity[i], 0.01f, 0.f, 100.f);
 
 				existingPLStr = "attenuation constant";
-				ImGui::DragFloat((existingPLStr + existingPLExt).c_str(), &lightShader.pointlightAttenuation_constant[i], 0.1f, 0.f, 100.f);
+				ImGui::DragFloat((existingPLStr + existingPLExt).c_str(), &lightShader.pointlightAttenuation_constant[i], 0.01f, 0.f, 100.f);
 				existingPLStr = "attenuation linear";
-				ImGui::DragFloat((existingPLStr + existingPLExt).c_str(), &lightShader.pointlightAttenuation_linear[i], 0.1f, 0.f, 100.f);
+				ImGui::DragFloat((existingPLStr + existingPLExt).c_str(), &lightShader.pointlightAttenuation_linear[i], 0.01f, 0.f, 100.f);
 				existingPLStr = "attenuation quadratic";
-				ImGui::DragFloat((existingPLStr + existingPLExt).c_str(), &lightShader.pointlightAttenuation_quadratic[i], 0.1f, 0.f, 100.f);
+				ImGui::DragFloat((existingPLStr + existingPLExt).c_str(), &lightShader.pointlightAttenuation_quadratic[i], 0.01f, 0.f, 100.f);
 				existingPLStr = "distance scaling";
-				ImGui::DragFloat((existingPLStr + existingPLExt).c_str(), &lightShader.pointlightDistanceScaling[i], 0.1f, 0.f, 100.f);
+				ImGui::DragFloat((existingPLStr + existingPLExt).c_str(), &lightShader.pointlightDistanceScaling[i], 0.01f, 0.f, 100.f);
 				existingPLStr = "distance flat";
-				ImGui::DragFloat((existingPLStr + existingPLExt).c_str(), &lightShader.pointlightDistanceFlat[i], 0.1f, 0.f, 100.f);
+				ImGui::DragFloat((existingPLStr + existingPLExt).c_str(), &lightShader.pointlightDistanceFlat[i], 0.01f, 0.f, 100.f);
 				ImGui::TreePop();
 			}
 		}
@@ -128,24 +128,24 @@ void DrawSpotLightControl(sf::Glsl::Vec2 pos, LightShader& lightShader, SpotLigh
 				existingPLStr = "radius";
 				ImGui::DragFloat((existingPLStr + existingPLExt).c_str(), &lightShader.spotlightRadius[i], 0.1f, 0.1f, 1000.f);
 				existingPLStr = "luminence";
-				ImGui::DragFloat((existingPLStr + existingPLExt).c_str(), &lightShader.spotlightLuminosity[i], 0.1f, 0.f, 100.f);
+				ImGui::DragFloat((existingPLStr + existingPLExt).c_str(), &lightShader.spotlightLuminosity[i], 0.01f, 0.f, 100.f);
 
 				existingPLStr = "attenuation constant";
-				ImGui::DragFloat((existingPLStr + existingPLExt).c_str(), &lightShader.spotlightAttenuation_constant[i], 0.1f, 0.f, 100.f);
+				ImGui::DragFloat((existingPLStr + existingPLExt).c_str(), &lightShader.spotlightAttenuation_constant[i], 0.01f, 0.f, 100.f);
 				existingPLStr = "attenuation linear";
-				ImGui::DragFloat((existingPLStr + existingPLExt).c_str(), &lightShader.spotlightAttenuation_linear[i], 0.1f, 0.f, 100.f);
+				ImGui::DragFloat((existingPLStr + existingPLExt).c_str(), &lightShader.spotlightAttenuation_linear[i], 0.01f, 0.f, 100.f);
 				existingPLStr = "attenuation quadratic";
-				ImGui::DragFloat((existingPLStr + existingPLExt).c_str(), &lightShader.spotlightAttenuation_quadratic[i], 0.1f, 0.f, 100.f);
+				ImGui::DragFloat((existingPLStr + existingPLExt).c_str(), &lightShader.spotlightAttenuation_quadratic[i], 0.01f, 0.f, 100.f);
 
 				
 				existingPLStr = "cutoff";
-				ImGui::DragFloat((existingPLStr + existingPLExt).c_str(), &lightShader.spotlight_cutoff[i], 0.1f, 0.1f, 1000.f);
+				ImGui::DragFloat((existingPLStr + existingPLExt).c_str(), &lightShader.spotlight_cutoff[i], 0.01f, 0.01f, 1000.f);
 				existingPLStr = "outer cutoff";
-				ImGui::DragFloat((existingPLStr + existingPLExt).c_str(), &lightShader.spotlight_outerCutoff[i], 0.1f, 0.1f, 1000.f);
+				ImGui::DragFloat((existingPLStr + existingPLExt).c_str(), &lightShader.spotlight_outerCutoff[i], 0.01f, 0.1f, 1000.f);
 				existingPLStr = "distance scaling";
-				ImGui::DragFloat((existingPLStr + existingPLExt).c_str(), &lightShader.spotlightDistanceScaling[i], 0.1f, 0.f, 100.f);
+				ImGui::DragFloat((existingPLStr + existingPLExt).c_str(), &lightShader.spotlightDistanceScaling[i], 0.01f, 0.f, 100.f);
 				existingPLStr = "distance flat";
-				ImGui::DragFloat((existingPLStr + existingPLExt).c_str(), &lightShader.spotlightDistanceFlat[i], 0.1f, 0.f, 100.f);
+				ImGui::DragFloat((existingPLStr + existingPLExt).c_str(), &lightShader.spotlightDistanceFlat[i], 0.01f, 0.f, 100.f);
 
 				ImGui::TreePop();
 			}
@@ -193,8 +193,8 @@ void Application::run() {
 	spotLight.attenuation_constant = 0.f;
 	spotLight.attenuation_linear = 1.f;
 	spotLight.attenuation_quadratic = 0.f;
-	spotLight.cutoffAngle = 3.14f / 2.f; //90 degrees
-	spotLight.outerCutoffAngle = 3.14f / 1.8f; //slightly more than 90 degrees
+	spotLight.cutoffAngle = 0.91f; //random values that look decent
+	spotLight.outerCutoffAngle = 0.73f; //random values that look decent
 	spotLight.distanceScaling = 1.f;
 
 	
