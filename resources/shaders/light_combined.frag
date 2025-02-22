@@ -26,6 +26,8 @@ uniform float pointlight_luminence[MAX_POINT_LIGHTS];
 uniform float pointlight_attenuation_constant[MAX_POINT_LIGHTS];
 uniform float pointlight_attenuation_linear[MAX_POINT_LIGHTS];
 uniform float pointlight_attenuation_quadratic[MAX_POINT_LIGHTS];
+uniform float pointlight_distance_scaling[MAX_POINT_LIGHTS];
+uniform float pointlight_distance_flat[MAX_POINT_LIGHTS];
 
 //spot light variables
 uniform int spotlight_count;
@@ -41,6 +43,8 @@ uniform float spotlight_attenuation_linear[MAX_SPOT_LIGHTS];
 uniform float spotlight_attenuation_quadratic[MAX_SPOT_LIGHTS];
 uniform float spotlight_cutoff[MAX_SPOT_LIGHTS];
 uniform float spotlight_outerCutoff[MAX_SPOT_LIGHTS];
+uniform float spotlight_distance_scaling[MAX_SPOT_LIGHTS];
+uniform float spotlight_distance_flat[MAX_SPOT_LIGHTS];
 
 
 // **** end of uniform variables
@@ -75,7 +79,7 @@ float CalculatePointLightShift(vec2 point, int light) {
     if(lightDistance == 0.0 || lightDistance > pointlight_radius[light]) {
         return 0.0;
     }
-    lightDistance = lightDistance / pointlight_radius[light];
+    lightDistance = lightDistance / pointlight_radius[light] * pointlight_distance_scaling[light] + pointlight_distance_flat[light];
     //vec2 lightDir = point - pointlight_position[light];
     //lightDir = lightDir / lightDistance;
 
@@ -103,7 +107,7 @@ float CalculateSpotLightShift(vec2 point, int light) {
     float spotValue = smoothstep(spotlight_outerCutoff[light], spotlight_cutoff[light], spotDot);
     //float spotAttenuation = pow(spotValue, spotlight_exponent[light]); // i need to dick with this to see what it does
 
-    lightDistance = lightDistance / spotlight_radius[light];
+    lightDistance = lightDistance / spotlight_radius[light] * spotlight_distance_scaling[light] + spotlight_distance_flat[light];
 
     float attenuation = 1.0 / 
                     (

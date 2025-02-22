@@ -19,6 +19,8 @@ namespace nightside {
 		float attenuation_constant;
 		float attenuation_linear;
 		float attenuation_quadratic;
+		float distanceScaling;
+		float distanceFlat;
 
 		//sf::Vector2f offset; //i dont think this is used in the shaders
 	};
@@ -32,6 +34,8 @@ namespace nightside {
 		float attenuation_quadratic;
 		float cutoffAngle;
 		float outerCutoffAngle;
+		float distanceScaling;
+		float distanceFlat;
 	};
 
 	class Finder;
@@ -42,11 +46,11 @@ namespace nightside {
 		void ClearPointLights();
 		void ClearSpotLights();
 
-		void AddPointLight(sf::Vector2f position, int luminosity, float radius, float att_c, float att_l, float att_q);
-		void AddPointLight(PointLight pointlight) { AddPointLight(pointlight.position, pointlight.luminosity, pointlight.radius, pointlight.attenuation_constant, pointlight.attenuation_linear, pointlight.attenuation_quadratic); }
-		void AddSpotLight(sf::Vector2f position, sf::Vector2f direction, int luminosity, float radius, float att_c, float att_l, float att_q, float cutoff, float outerCutoff);
+		void AddPointLight(sf::Vector2f position, int luminosity, float radius, float att_c, float att_l, float att_q, float distanceScaling, float distanceFlat);
+		void AddPointLight(PointLight pointlight) { AddPointLight(pointlight.position, pointlight.luminosity, pointlight.radius, pointlight.attenuation_constant, pointlight.attenuation_linear, pointlight.attenuation_quadratic, pointlight.distanceScaling, pointlight.distanceFlat); }
+		void AddSpotLight(sf::Vector2f position, sf::Vector2f direction, int luminosity, float radius, float att_c, float att_l, float att_q, float cutoff, float outerCutoff, float distanceScaling, float distanceFlat);
 		void AddSpotLight(SpotLight spotlight) {
-			AddSpotLight(spotlight.position, spotlight.direction, spotlight.luminosity, spotlight.radius, spotlight.attenuation_constant, spotlight.attenuation_linear, spotlight.attenuation_quadratic, spotlight.cutoffAngle, spotlight.outerCutoffAngle);
+			AddSpotLight(spotlight.position, spotlight.direction, spotlight.luminosity, spotlight.radius, spotlight.attenuation_constant, spotlight.attenuation_linear, spotlight.attenuation_quadratic, spotlight.cutoffAngle, spotlight.outerCutoffAngle, spotlight.distanceScaling, spotlight.distanceFlat);
 		}
 		
 
@@ -65,6 +69,8 @@ namespace nightside {
 		std::vector<float> pointlightAttenuation_constant{};
 		std::vector<float> pointlightAttenuation_linear{};
 		std::vector<float> pointlightAttenuation_quadratic{};
+		std::vector<float> pointlightDistanceScaling{};
+		std::vector<float> pointlightDistanceFlat{};
 
 		std::vector<sf::Vector2f> spotlightPosition{};
 		std::vector<sf::Vector2f> spotlightDirection{};
@@ -75,6 +81,8 @@ namespace nightside {
 		std::vector<float> spotlightAttenuation_quadratic{};
 		std::vector<float> spotlight_cutoff{};
 		std::vector<float> spotlight_outerCutoff{};
+		std::vector<float> spotlightDistanceScaling{};
+		std::vector<float> spotlightDistanceFlat{};
 
 	  private:
 		sf::Shader m_shader{};

@@ -18,7 +18,7 @@ LightShader::LightShader(Finder& finder) {
 		std::cout << "Failed to load shader " + frag.string() << ".\n"; 
 	}
 }
-void LightShader::AddPointLight(sf::Vector2f position, int luminosity, float radius, float att_c, float att_l, float att_q){
+void LightShader::AddPointLight(sf::Vector2f position, int luminosity, float radius, float att_c, float att_l, float att_q, float distanceScaling, float distanceFlat){
 	if (currentPointLight >= (MAX_POINT_LIGHTS - 1)) { 
 		printf("already have maximum lights\n");
 		return;
@@ -30,10 +30,12 @@ void LightShader::AddPointLight(sf::Vector2f position, int luminosity, float rad
 	pointlightAttenuation_constant.push_back(att_c);
 	pointlightAttenuation_linear.push_back(att_l);
 	pointlightAttenuation_quadratic.push_back(att_q);
+	pointlightDistanceScaling.push_back(distanceScaling);
+	pointlightDistanceFlat.push_back(distanceFlat);
 
 	currentPointLight++;
 }
-void LightShader::AddSpotLight(sf::Vector2f position, sf::Vector2f direction, int luminosity, float radius, float att_c, float att_l, float att_q, float cutoff, float outerCutoff) {
+void LightShader::AddSpotLight(sf::Vector2f position, sf::Vector2f direction, int luminosity, float radius, float att_c, float att_l, float att_q, float cutoff, float outerCutoff, float distanceScaling, float distanceFlat) {
 
 	if (currentSpotLight >= (MAX_POINT_LIGHTS - 1)) {
 		printf("already have maximum lights\n");
@@ -48,6 +50,8 @@ void LightShader::AddSpotLight(sf::Vector2f position, sf::Vector2f direction, in
 	spotlightAttenuation_quadratic.push_back(att_q);
 	spotlight_cutoff.push_back(cutoff);
 	spotlight_outerCutoff.push_back(outerCutoff);
+	spotlightDistanceScaling.push_back(distanceScaling);
+	spotlightDistanceFlat.push_back(distanceFlat);
 
 	currentSpotLight++;
 }
@@ -61,6 +65,8 @@ void LightShader::Finalize() {
 	m_shader.setUniformArray("pointlight_attenuation_constant", pointlightAttenuation_constant.data(), pointlightAttenuation_constant.size());
 	m_shader.setUniformArray("pointlight_attenuation_linear", pointlightAttenuation_linear.data(), pointlightAttenuation_linear.size());
 	m_shader.setUniformArray("pointlight_attenuation_quadratic", pointlightAttenuation_quadratic.data(), pointlightAttenuation_quadratic.size());
+	m_shader.setUniformArray("pointlight_distance_scaling", pointlightDistanceScaling.data(), pointlightDistanceScaling.size());
+	m_shader.setUniformArray("pointlight_distance_flat", pointlightDistanceFlat.data(), pointlightDistanceFlat.size());
 	
 	m_shader.setUniform("spotlight_count", currentSpotLight + 1);
 	m_shader.setUniformArray("spotlight_position", spotlightPosition.data(), spotlightPosition.size());
@@ -72,6 +78,8 @@ void LightShader::Finalize() {
 	m_shader.setUniformArray("spotlight_attenuation_quadratic", spotlightAttenuation_quadratic.data(), spotlightAttenuation_quadratic.size());
 	m_shader.setUniformArray("spotlight_cutoff", spotlight_cutoff.data(), spotlight_cutoff.size());
 	m_shader.setUniformArray("spotlight_outerCutoff", spotlight_outerCutoff.data(), spotlight_outerCutoff.size());
+	m_shader.setUniformArray("spotlight_distance_scaling", spotlightDistanceScaling.data(), spotlightDistanceScaling.size());
+	m_shader.setUniformArray("spotlight_distance_flat", spotlightDistanceFlat.data(), spotlightDistanceFlat.size());
 
 
 }
@@ -95,6 +103,7 @@ void LightShader::ClearPointLights() {
 	pointlightAttenuation_constant.clear();
 	pointlightAttenuation_linear.clear();
 	pointlightAttenuation_quadratic.clear();
+	pointlightDistanceScaling.clear();
 }
 
 void LightShader::ClearSpotLights() {
@@ -108,6 +117,7 @@ void LightShader::ClearSpotLights() {
 	spotlightAttenuation_quadratic.clear();
 	spotlight_cutoff.clear();
 	spotlight_outerCutoff.clear();
+	spotlightDistanceScaling.clear();
 }
 
 } // namespace nightside
