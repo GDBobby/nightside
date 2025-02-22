@@ -120,43 +120,43 @@ void main() {
 	pixelPoint = floor(pixelPoint / u_px) * u_px;
     //to_discard was giving me trouble
 
-	float total_amount = 0.0;
+	float highest_amount = 0.0;
 	for(int light = 0; light < pointlight_count; light++){
         //int localShift = CalculatePointLightShift(pixelPoint, light);
         //if(result.x == 1.0){
             //i think theres a better way to calculate dithering, but ill come back to this
             //localShift = clamp(localShift - 1, 0, localShift);
         //}
-        total_amount += CalculatePointLightShift(pixelPoint, light);
+        highest_amount = max(highest_amount, CalculatePointLightShift(pixelPoint, light));
     }
     for(int light = 0; light < spotlight_count; light++){
-        total_amount += CalculateSpotLightShift(pixelPoint, light);
+        highest_amount = max(highest_amount, CalculateSpotLightShift(pixelPoint, light));
     }
 
 
     
-    float fraction = fract(total_amount);
-    total_amount = total_amount - fraction;
+    float fraction = fract(highest_amount);
+    highest_amount = highest_amount - fraction;
     
-    if(total_amount >= 1.0){
+    if(highest_amount >= 1.0){
     if(fraction < 0.25){
         if((mod(pixelPoint.x, 2.0) == 0.0) && (mod(pixelPoint.y, 2.0) == 0.0)){
-            total_amount -= 1.0;
+            highest_amount -= 1.0;
         }
     }
     else if(fraction < 0.5){
         if((mod(pixelPoint.x, 4.0) == 0.0) && (mod(pixelPoint.y, 4.0) == 0.0)){
-            total_amount -= 1.0;
+            highest_amount -= 1.0;
         }
     }
     else {
         if((mod(pixelPoint.x, 8.0) == 0.0) && (mod(pixelPoint.y, 8.0) == 0.0)){
-            total_amount -= 1.0;
+            highest_amount -= 1.0;
         }
     }
     }
 
 
-	gl_FragColor = gl_Color * shift(total_amount);
+	gl_FragColor = gl_Color * shift(highest_amount);
 	//gl_FragColor = gl_Color * source;
 }
